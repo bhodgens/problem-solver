@@ -1,0 +1,30 @@
+{
+    "DATABASE_URI": "sqlite:///survey.db",
+    "SECRET_KEY": "your_secret_key",
+    "GOOGLE_CLIENT_ID": "your_google_client_id",
+    "GOOGLE_CLIENT_SECRET": "your_google_client_secret",
+    "MAX_WORDS": 200,
+    "PROMPTS": [
+        {
+            "text": "Describe a problem you know how to solve but don’t have time to complete.",
+            "anonymous": false
+        },
+        {
+            "text": "Describe a problem you see that you need help on.",
+            "anonymous": false
+        },
+        {
+            "text": "Describe a problem you see but can’t do anything about.",
+            "anonymous": true
+        },
+        {
+            "text": "Describe the biggest organizational problem you're aware of and how to fix it.",
+            "anonymous": true
+        },
+        {
+            "text": "Explain why someone else's problem is or is not a good problem to solve.",
+            "anonymous": true
+        }
+    ]
+}
+
