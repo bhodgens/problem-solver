@@ -1,6 +1,10 @@
-# Problem Solver Platform
+# Problem Solver 
 
-A Flask-based web application for collective, quasi-anonymous workplace problem-solving.
+**The problem**: People tend to go along with what's going on. They don't want to stick their heads up or seem at odds with management, or the social order of the workplace. The result is that problems fester and grow, with people coming up with complex costly mechanisms to work around the problem (whether social or technical), with the result of those problems ultimately becoming a part of the company culture. 
+
+The intention of this tool is to provide a way to socially surface problems and provide remediation. Someone, somewhere within your company is attentive and knows how to fix it - if you want to. 
+
+This is a Flask-based web application for collective, quasi-anonymous workplace problem-solving.
 
 ## Purpose
 
