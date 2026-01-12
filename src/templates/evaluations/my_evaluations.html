@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}My Evaluations{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-clipboard-check"></i> My Evaluation History</h4>
+            </div>
+            <div class="card-body">
+                {% if evaluations %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Target</th>
+                                    <th>Severity</th>
+                                    <th>Impact</th>
+                                    <th>Feasibility</th>
+                                    <th>Creativity</th>
+                                    <th>Completeness</th>
+                                    <th>Overall Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for evaluation in evaluations %}
+                                    <tr>
+                                        <td>{{ evaluation.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if evaluation.problem_id %}
+                                                <a href="{{ url_for('problems_bp.detail', id=evaluation.problem_id) }}">
+                                                    Problem #{{ evaluation.problem_id }}
+                                                </a>
+                                            {% elif evaluation.solution_id %}
+                                                <a href="{{ url_for('solutions_bp.detail', id=evaluation.solution_id) }}">
+                                                    Solution #{{ evaluation.solution_id }}
+                                                </a>
+                                            {% else %}
+                                                Unknown
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if evaluation.severity_rating %}
+                                                <span class="badge severity-low">{{ evaluation.severity_rating }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if evaluation.impact_rating %}
+                                                <span class="badge severity-low">{{ evaluation.impact_rating }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if evaluation.feasibility_rating %}
+                                                <span class="badge bg-success">{{ evaluation.feasibility_rating }}/5</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if evaluation.creativity_rating %}
+                                                <span class="badge bg-warning">{{ evaluation.creativity_rating }}/5</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if evaluation.completeness_rating %}
+                                                <span class="badge bg-info">{{ evaluation.completeness_rating }}/5</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ evaluation.get_overall_score() }}</span>
+                                        </td>
+                                        <td>
+                                            {{ evaluation.evaluator_pseudonym }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-5">You haven't evaluated any problems or solutions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

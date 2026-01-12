@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Preferences - Problem Solver Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-sliders"></i> Notification Preferences</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('notifications_bp.preferences') }}">
+                    <div class="mb-3">
+                        <label for="email_notifications" class="form-label">Email Notifications</label>
+                        <select class="form-select" id="email_notifications" name="email_notifications" required>
+                            <option value="none">No Email Notifications</option>
+                            <option value="immediate" {% if current_user.email_notifications == 'immediate' %}selected{% endif %}>
+                                Immediate - Send emails as events happen
+                            </option>
+                            <option value="daily" {% if current_user.email_notifications == 'daily' %}selected{% endif %}>
+                                Daily Digest - Send summary once per day
+                            </option>
+                            <option value="weekly" {% if current_user.email_notifications == 'weekly' %}selected{% endif %}>
+                                Weekly Digest - Send summary once per week
+                            </option>
+                        </select>
+                        
+                        <select class="form-select" id="digest_frequency" name="digest_frequency" required>
+                            <option value="morning" {% if current_user.digest_frequency == 'morning' %}selected{% endif %}>
+                                Morning (8:00 AM)
+                            </option>
+                            <option value="evening" {% if current_user.digest_frequency == 'evening' %}selected{% endif %}>
+                                Evening (6:00 PM)
+                            </option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Choose how often you want to receive email notifications
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="digest_frequency" class="form-label">Digest Timing</label>
+                        <select class="form-select" id="digest_frequency" name="digest_frequency" required>
+                            <option value="morning" {% if current_user.digest_frequency == 'morning' %}selected{% endif %}>
+                                Morning (8:00 AM)
+                            </option>
+                            <option value="evening" {% if current_user.digest_frequency == 'evening' %}selected{% endif %}>
+                                Evening (6:00 PM)
+                            </option>
+                        </select>
+                        <small class="form-text text-muted">
+                            When should we send digest emails?
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notification_types" class="form-label">Notification Types</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notify_problems" name="notify_problems" value="problems" 
+                                   {% if 'problems' in current_user.notification_types %}checked{% endif %}>
+                            <label class="form-check-label" for="notify_problems">
+                                New problems submitted
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notify_solutions" name="notify_solutions" value="solutions" 
+                                   {% if 'solutions' in current_user.notification_types %}checked{% endif %}>
+                            <label class="form-check-label" for="notify_solutions">
+                                Solutions added to your problems
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notify_evaluations" name="notify_evaluations" value="evaluations" 
+                                   {% if 'evaluations' in current_user.notification_types %}checked{% endif %}>
+                            <label class="form-check-label" for="notify_evaluations">
+                                Evaluations received
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notify_votes" name="notify_votes" value="votes" 
+                                   {% if 'votes' in current_user.notification_types %}checked{% endif %}>
+                            <label class="form-check-label" for="notify_votes">
+                                Your solutions receive votes
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notify_comments" name="notify_comments" value="comments" 
+                                   {% if 'comments' in current_user.notification_types %}checked{% endif %}>
+                            <label class="form-check-label" for="notify_comments">
+                                Comments on your content
+                            </label>
+                        </div>
+                        
+                        <small class="form-text text-muted">
+                            Choose which types of notifications you want to receive in-app and via email
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Save Preferences
+                        </button>
+                        <a href="{{ url_for('notifications_bp.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Notifications
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Current Settings</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Email Notifications</span>
+                        <span class="badge bg-{{ 'success' if current_user.email_notifications != 'none' else 'secondary' }}">
+                            {{ current_user.email_notifications|title or 'None' }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>Digest Frequency</span>
+                        <span class="badge bg-secondary">
+                            {{ current_user.digest_frequency|title or 'Not Set' }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Problem Solver Platform - Create Problem{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-plus-circle"></i> Create New Problem</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('problems_bp.create') }}" id="problem-form">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'error' %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="title" class="form-label">Problem Title *</label>
+                            <input type="text" class="form-control {% if not title %}is-invalid{% endif %}" 
+                                   id="title" name="title" 
+                                   value="{{ title or '' }}" 
+                                   maxlength="200" required>
+                            {% if not title and messages %}
+                                <div class="invalid-feedback">Please provide a title</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Problem Description *</label>
+                            <textarea class="form-control {% if not description %}is-invalid{% endif %}" 
+                                      id="description" name="description" 
+                                      rows="6" required>{{ description or '' }}</textarea>
+                            {% if not description and messages %}
+                                <div class="invalid-feedback">Please provide a description</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <h6>Initial Solutions <small class="text-muted">(Add at least one)</small></h6>
+                        <div id="solutions-container">
+                            <div class="mb-3 solution-row">
+                                <div class="row">
+                                    <div class="col-md-10">
+                                        <input type="text" class="form-control" 
+                                               name="solutions" 
+                                               placeholder="Describe your proposed solution...">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addSolutionRow()">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="visibility" class="form-label">Posting Visibility</label>
+                            <select class="form-select" id="visibility" name="visibility" required>
+                                <option value="identified" {% if visibility == 'identified' %}selected{% endif %}>
+                                    <i class="bi bi-person"></i> Identified (Real Name)
+                                </option>
+                                <option value="semi-anonymous" {% if visibility == 'semi-anonymous' %}selected{% endif %}>
+                                    <i class="bi bi-person-badge"></i> Semi-Anonymous (Pseudonym + Admins see real name)
+                                </option>
+                                <option value="anonymous" {% if visibility == 'anonymous' %}selected{% endif %}>
+                                    <i class="bi bi-incognito"></i> Anonymous (Pseudonym Only)
+                                </option>
+                            </select>
+                            <small class="form-text text-muted">
+                                Choose how your name appears when you submit problems and solutions.
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="severity" class="form-label">Severity Level</label>
+                            <select class="form-select" id="severity" name="severity" required>
+                                <option value="low" {% if severity == 'low' %}selected{% endif %}>Low</option>
+                                <option value="medium" {% if severity == 'medium' %}selected{% endif %}>Medium</option>
+                                <option value="high" {% if severity == 'high' %}selected{% endif %}>High</option>
+                                <option value="critical" {% if severity == 'critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <h6>Tags <small class="text-muted">(Comma-separated)</small></h6>
+                        <div class="col-md-12">
+                            <input type="text" class="form-control" 
+                                   id="problem-tags" 
+                                   name="tags" 
+                                   placeholder="engineering, hr, operations, finance"
+                                   value="{{ problem_tags|join(', ') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <h6>Affected Departments <small class="text-muted">(Optional)</small></h6>
+                        <div class="col-md-12">
+                            <input type="text" class="form-control" 
+                                   id="departments" 
+                                   name="departments" 
+                                   placeholder="Engineering, HR, Operations"
+                                   value="{{ departments|join(', ') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> Create Problem
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('problems_bp.list') }}" class="btn btn-outline-secondary btn-lg">
+                                <i class="bi bi-list-task"></i> Browse Problems
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Problem Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>Title:</strong> Clear, specific problem statement
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Description:</strong> Detailed explanation with context
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Initial Solutions:</strong> Propose at least one solution
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Tags:</strong> Use relevant tags for categorization
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Visibility:</strong> Choose appropriate privacy level
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Severity:</strong> Assess impact level accurately
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addSolutionRow() {
+    const container = document.getElementById('solutions-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'mb-3 solution-row';
+    newRow.innerHTML = `
+        <div class="row">
+            <div class="col-md-10">
+                <input type="text" class="form-control" name="solutions" placeholder="Describe your proposed solution...">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="this.parentElement.remove()">
+                    <i class="bi bi-dash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(newRow);
+}
+
+function validateForm() {
+    const title = document.getElementById('title');
+    const description = document.getElementById('description');
+    const solutions = document.querySelectorAll('input[name="solutions"]');
+    
+    let isValid = title.value.trim().length > 0 && 
+                  description.value.trim().length > 0 && 
+                  Array.from(solutions).some(input => input.value.trim().length > 0);
+    
+    if (isValid) {
+        title.classList.remove('is-invalid');
+        description.classList.remove('is-invalid');
+        Array.from(solutions).forEach(input => input.classList.remove('is-invalid'));
+    }
+    
+    return isValid;
+}
+</script>
+{% endblock %}

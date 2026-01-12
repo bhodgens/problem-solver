@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results for "{{ search or 'All Problems' }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-search"></i> Search Results</h4>
+                <p class="lead">
+                    Found <strong>{{ problems.total if problems else 0 }}</strong> problems matching 
+                    {% if search %}
+                        "<strong>{{ search }}</strong>"
+                    {% else %}
+                        All problems
+                    {% endif %}
+                </p>
+            </div>
+            <div class="card-body">
+                {% if not problems %}
+                    <div class="text-center py-5">
+                        <h3><i class="bi bi-inbox"></i> No Problems Found</h3>
+                        <p class="lead">No problems found matching your criteria.</p>
+                        <div class="mt-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <a href="{{ url_for('problems_bp.create') }}" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-plus-circle"></i> Submit First Problem
+                                    </a>
+                                <a href="{{ url_for('problems_bp.list') }}" class="btn btn-outline-primary btn-lg">
+                                    <i class="bi bi-list-task"></i> Browse All Problems
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

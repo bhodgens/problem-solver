@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.title }} - Problem Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-1">{{ problem.title }}</h3>
+                    <div class="text-muted">
+                        <small>
+                            <i class="bi bi-person"></i> 
+                            {{ get_display_name(problem.submitter, problem, current_user) }}
+                            <span class="ms-3">
+                                <i class="bi bi-calendar"></i> 
+                                {{ problem.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                            </span>
+                            {% if problem.updated_at != problem.created_at %}
+                                <span class="ms-3">
+                                    <i class="bi bi-pencil"></i> 
+                                    Updated {{ problem.updated_at.strftime('%B %d, %Y') }}
+                                </span>
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge severity-{{ problem.severity }} text-white">
+                        {{ problem.severity.title() }}
+                    </span>
+                    <span class="badge bg-secondary ms-2">
+                        {{ problem.status.replace('_', ' ').title() }}
+                    </span>
+                    {% if problem.visibility != 'identified' %}
+                        <span class="badge bg-info ms-2">
+                            <i class="bi bi-incognito"></i> {{ problem.visibility.title() }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div class="problem-description">
+                    {{ problem.description|nl2br }}
+                </div>
+                
+                {% if problem.tags %}
+                <div class="mt-3">
+                    <strong>Tags:</strong>
+                    {% for tag in problem.tags %}
+                        <span class="badge bg-light text-dark me-1">
+                            <i class="bi bi-tag-fill" style="color: {{ tag.color }}"></i>
+                            {{ tag.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if problem.affected_departments %}
+                <div class="mt-2">
+                    <strong>Affected Departments:</strong>
+                    {{ problem.affected_departments|join(', ') }}
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if is_editable %}
+            <div class="card-footer">
+                <a href="{{ url_for('problems_bp.edit', id=problem.id) }}" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit Problem
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Solutions Section -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-lightbulb"></i> Solutions ({{ solutions|length }})</h4>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('solutions_bp.create', problem_id=problem.id) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Solution
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="card-body">
+                {% if solutions %}
+                    {% for solution in solutions %}
+                    <div class="solution-item border rounded p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6>{{ solution.title }}</h6>
+                                <p class="mb-2">{{ solution.description|nl2br }}</p>
+                                
+                                <div class="solution-meta">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person"></i> 
+                                        {{ get_display_name(solution.submitter, solution, current_user) }}
+                                        <span class="ms-3">
+                                            <i class="bi bi-calendar"></i> 
+                                            {{ solution.created_at.strftime('%b %d, %Y') }}
+                                        </span>
+                                    </small>
+                                    
+                                    {% if solution.visibility != 'identified' %}
+                                        <span class="badge bg-info ms-2">
+                                            <i class="bi bi-incognito"></i> {{ solution.visibility.title() }}
+                                        </span>
+                                    {% endif %}
+                                    
+                                    <span class="badge bg-secondary ms-2">
+                                        {{ solution.status.title() }}
+                                    </span>
+                                </div>
+                                
+                                {% if solution.cost_estimate or solution.time_estimate or solution.required_resources %}
+                                <div class="mt-2">
+                                    <small>
+                                        {% if solution.cost_estimate %}
+                                            <span class="me-3"><strong>Cost:</strong> ${{ solution.cost_estimate }}</span>
+                                        {% endif %}
+                                        {% if solution.time_estimate %}
+                                            <span class="me-3"><strong>Time:</strong> {{ solution.time_estimate }}</span>
+                                        {% endif %}
+                                        {% if solution.required_resources %}
+                                            <span><strong>Resources:</strong> {{ solution.required_resources }}</span>
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="ms-3 text-center">
+                                {% set vote_score = solution.get_vote_score() %}
+                                <div class="vote-score">
+                                    {% if vote_score > 0 %}
+                                        <span class="text-success">{{ vote_score }}</span>
+                                    {% elif vote_score < 0 %}
+                                        <span class="text-danger">{{ vote_score }}</span>
+                                    {% else %}
+                                        <span class="text-muted">{{ vote_score }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="vote-buttons mt-1">
+                                    {% if current_user.is_authenticated %}
+                                    <form method="POST" action="{{ url_for('solutions_bp.vote', id=solution.id) }}" class="d-inline">
+                                        <input type="hidden" name="vote_type" value="up">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('solutions_bp.vote', id=solution.id) }}" class="d-inline">
+                                        <input type="hidden" name="vote_type" value="down">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Solution Actions -->
+                        <div class="mt-3">
+                            <a href="{{ url_for('solutions_bp.detail', id=solution.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                            
+                            {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('evaluations_bp.create', solution_id=solution.id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-star"></i> Evaluate
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-lightbulb" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No solutions yet. Be the first to propose a solution!</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('solutions_bp.create', problem_id=problem.id) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Solution
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Problem Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart"></i> Problem Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ solutions|length }}</h4>
+                        <small class="text-muted">Solutions</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>{{ problem.get_vote_score() }}</h4>
+                        <small class="text-muted">Votes</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4>{{ problem.evaluations|length }}</h4>
+                        <small class="text-muted">Evaluations</small>
+                    </div>
+                    <div class="col-6">
+                        <h4>{{ problem.comments|length }}</h4>
+                        <small class="text-muted">Comments</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        {% if current_user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('solutions_bp.create', problem_id=problem.id) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add Solution
+                    </a>
+                    
+                    <a href="{{ url_for('evaluations_bp.create', problem_id=problem.id) }}" class="btn btn-info">
+                        <i class="bi bi-star"></i> Evaluate Problem
+                    </a>
+                    
+                    <form method="POST" action="{{ url_for('problems_bp.vote', id=problem.id) }}" class="d-inline">
+                        <input type="hidden" name="vote_type" value="up">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-arrow-up"></i> Upvote Problem
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Related Problems -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-link"></i> Related Problems</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">
+                    Related problems will appear here based on tags and content similarity.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  problem-solver:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URI=postgresql://problem_solver:password@db:5432/problem_solver
+      - SECRET_KEY=your-production-secret-key-here
+      - GOOGLE_CLIENT_ID=your-google-client-id
+      - GOOGLE_CLIENT_SECRET=your-google-client-secret
+      - FLASK_ENV=production
+      - MAIL_SERVER=smtp.gmail.com
+      - MAIL_PORT=587
+      - MAIL_USE_TLS=true
+      - MAIL_USERNAME=your-smtp-username
+      - MAIL_PASSWORD=your-smtp-password
+      - MAIL_DEFAULT_SENDER=Problem Solver Platform <noreply@example.com>
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=problem_solver_password
+      - POSTGRES_USER=problem_solver
+      - POSTGRES_DB=problem_solver
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # For development with local overrides
+  # Use this file with: docker-compose -f docker-compose.override.yml
+  # For development with local database:
+  # docker-compose -f docker-compose.yml -f docker-compose.dev.yml

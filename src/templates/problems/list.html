@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Problems{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="bi bi-search"></i> Search & Filters</h4>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('problems_bp.list') }}" class="mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="q" 
+                                   placeholder="Search problems..." 
+                                   value="{{ search }}">
+                            </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Severity</label>
+                            <select class="form-select" name="severity" onchange="this.form.submit()">
+                                <option value="">All Severities</option>
+                                <option value="low" {% if severity == 'low' %}selected{% endif %}>Low</option>
+                                <option value="medium" {% if severity == 'medium' %}selected{% endif %}>Medium</option>
+                                <option value="high" {% if severity == 'high' %}selected{% endif %}>High</option>
+                                <option value="critical" {% if severity == 'critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        {% if problems.total > 0 %}
+            <div class="row">
+                {% for problem in problems.items %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 problem-card" data-problem-id="{{ problem.id }}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0 text-truncate">
+                                    <a href="{{ url_for('problems_bp.detail', id=problem.id) }}" class="text-decoration-none text-white">
+                                        {{ problem.title }}
+                                    </a>
+                                </h5>
+                                <span class="badge severity-{{ problem.severity }} text-white ms-2">
+                                    {{ problem.severity.title() }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-truncate">
+                                    {{ problem.description[:200] }}{% if problem.description|length > 200 %}...{% endif %}
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person"></i> 
+                                            {{ get_display_name(problem.submitter, problem, current_user) }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            {{ problem.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div>
+                                        {% set vote_score = problem.get_vote_score() %}
+                                        {% if vote_score > 0 %}
+                                            <span class="badge bg-success">{{ vote_score }} <i class="bi bi-arrow-up"></i></span>
+                                        {% elif vote_score < 0 %}
+                                            <span class="badge bg-danger">{{ vote_score }} <i class="bi bi-arrow-down"></i></span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if problem.is_resolved() %}
+                                        <span class="badge bg-success ms-2">Resolved</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent">
+                                <a href="{{ url_for('problems_bp.detail', id=problem.id) }}" class="btn btn-primary">
+                                    View Details <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <h3><i class="bi bi-search"></i> No Problems Found</h3>
+                <p class="lead">
+                    {% if search %}
+                        No problems found matching "{{ search }}".
+                    {% else %}
+                        No problems available.
+                    {% endif %}
+                    Try adjusting your search terms or browse all problems.
+                </p>
+                <div class="mt-4">
+                    <a href="{{ url_for('problems_bp.create') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create New Problem
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>{{ problems.total if problems else 0 }}</h3>
+                        <p class="text-muted">Total Problems</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>{{ problems.total|sum(attribute='view_count') }}</h3>
+                        <p class="text-muted">Total Views</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if problems.pages > 1 %}
+    <div class="row justify-content-center mt-4">
+        <nav>
+            <ul class="pagination">
+                {% if problems.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('problems_bp.list', page=problems.prev_num) }}">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in problems.iter_pages() %}
+                    <li class="page-item {% if page_num == problems.page %}active{% endif %}">
+                        {% if page_num == problems.page %}
+                            <span class="page-link">{{ page_num }}</span>
+                        {% else %}
+                            <a class="page-link" href="{{ url_for('problems_bp.list', page=page_num) }}">{{ page_num }}</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                
+                {% if problems.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('problems_bp.list', page=problems.next_num) }}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}{{ solution.problem.title }} - Solution{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">
+                    Solution for: {{ solution.problem.title }}
+                </h4>
+                <small class="text-muted">By: {{ solution.submitter.get_display_name() }}</small>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="badge bg-{{ 'success' if solution.is_implemented() else 'warning' if solution.status == 'approved' else 'info' }} ms-2">
+                            {% if solution.is_implemented() %}
+                                Implemented
+                            {% elif solution.status == 'approved' %}
+                                Approved
+                            {% else %}
+                                {{ solution.status.title() }}
+                            {% endif %}
+                        </span>
+                        <small class="text-muted">
+                            Status: {{ solution.created_at.strftime('%b %d, %Y') }}
+                        </small>
+                    </div>
+                    
+                    <div>
+                        {% if solution.is_editable_by(current_user) %}
+                            <a href="{{ url_for('solutions_bp.edit', id=solution.id) }}" 
+                               class="btn btn-sm btn-outline-primary me-2">
+                                <i class="bi bi-pencil"></i> Edit Solution
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h5>Content</h5>
+                    <p class="card-text">{{ solution.content }}</p>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="vote-section">
+                        <h6>Vote Score: <span id="vote-score-{{ solution.id }}">{{ solution.get_vote_score() }}</span></h6>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn {% if current_user_vote and current_user_vote.score == 1 %}btn-success{% elif current_user_vote and current_user_vote.score == -1 %}btn-danger{% else %}btn-outline-primary{% endif %}" 
+                                    data-solution-id="{{ solution.id }}" 
+                                    onclick="handleVote('{{ solution.id }}', 'upvote')">
+                                <i class="bi bi-arrow-up"></i> 
+                                <span class="vote-count">{{ solution.upvotes }}</span>
+                            </button>
+                            
+                            <button type="button" class="btn {% if current_user_vote and current_user_vote.score == -1 %}btn-success{% elif current_user_vote and current_user_vote.score == 1 %}btn-danger{% else %}btn-outline-danger{% endif %}" 
+                                    data-solution-id="{{ solution.id }}" 
+                                    onclick="handleVote('{{ solution.id }}', 'downvote')">
+                                <i class="bi bi-arrow-down"></i> 
+                                <span class="vote-count">{{ solution.downvotes }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Evaluations <small class="text-muted">({{ solution.evaluations|length %})</small></h6>
+                    {% for evaluation in solution.evaluations %}
+                        <div class="evaluation-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>{{ evaluation.evaluator.get_display_name() }}</strong>
+                                <small class="text-muted">{{ evaluation.created_at.strftime('%b %d, %Y') }}</small>
+                            </div>
+                            
+                            <div class="evaluation-scores">
+                                <div class="score-item">
+                                    <span class="badge bg-info">Feasibility: {{ evaluation.feasibility_rating }}/5</span>
+                                </div>
+                                <div class="score-item">
+                                    <span class="badge bg-warning">Creativity: {{ evaluation.creativity_rating }}/5</span>
+                                </div>
+                                <div class="score-item">
+                                    <span class="badge bg-success">Completeness: {{ evaluation.completeness_rating }}/5</span>
+                                </div>
+                            </div>
+                            
+                            {% if evaluation.comment %}
+                                <p class="evaluation-comment">{{ evaluation.comment }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    {% if not solution.evaluations %}
+                        <p class="text-muted">No evaluations yet.</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Comments <small class="text-muted">({{ solution.comments|length %})</small></h6>
+                    {% for comment in solution.comments %}
+                        <div class="comment-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ comment.user.get_display_name() }}</strong>
+                                    <small class="text-muted">{{ comment.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <div class="comment-actions">
+                                    {% if comment.is_editable_by(current_user) %}
+                                        <a href="{{ url_for('edit_comment', id=comment.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">Edit</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="comment-content">
+                                <p>{{ comment.content }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if not solution.comments %}
+                        <p class="text-muted">No comments yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Solution Info</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>Problem:</strong> 
+                        <a href="{{ url_for('problems_bp.detail', id=solution.problem_id) }}">{{ solution.problem.title }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Status:</strong> 
+                        <span class="badge bg-{{ 'success' if solution.is_implemented() else 'warning' if solution.status == 'approved' else 'info' }} ms-2">
+                            {% if solution.is_implemented() %}
+                                Implemented
+                            {% elif solution.status == 'approved' %}
+                                Approved
+                            {% else %}
+                                {{ solution.status.title() }}
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Created:</strong> {{ solution.created_at.strftime('%B %d, %Y') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Last Updated:</strong> {{ solution.updated_at.strftime('%B %d, %Y') }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load current user's vote
+const currentVote = localStorage.getItem('solution_{{ solution.id }}_vote');
+
+// Initialize vote display
+document.addEventListener('DOMContentLoaded', function() {
+    if (currentVote) {
+        updateVoteDisplay('{{ solution.id }}', currentVote);
+    }
+});
+
+function handleVote(solutionId, voteType) {
+    const voteUrl = `/solutions/${solutionId}/vote`;
+    
+    submitForm(`vote-form-${solutionId}`, voteUrl, (data) => {
+        if (data.success) {
+            localStorage.setItem(`solution_${solutionId}_vote`, voteType);
+            updateVoteDisplay(solutionId, data.vote_score);
+            showFlashMessage('success', data.message);
+            
+            // Update vote counts
+            const upvoteBtn = document.querySelector(`[data-solution-id="${solutionId}"] .upvote-count`);
+            const downvoteBtn = document.querySelector(`[data-solution-id="${solutionId}"] .downvote-count`);
+            
+            if (upvoteBtn && downvoteBtn) {
+                const voteScore = data.vote_score;
+                upvoteBtn.textContent = voteScore > 0 ? voteScore : 0;
+                downvoteBtn.textContent = voteScore < 0 ? Math.abs(voteScore) : 0;
+            }
+        }
+    });
+}
+
+function updateVoteDisplay(solutionId, voteScore) {
+    const voteElements = document.querySelectorAll(`[data-solution-id="${solutionId}"] .vote-display`);
+    voteElements.forEach(element => {
+        element.textContent = voteScore;
+        element.className = voteScore > 0 ? 'badge bg-success' : 'badge bg-danger';
+    });
+}
+</script>
+{% endblock %}

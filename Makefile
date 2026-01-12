@@ -164,18 +164,58 @@ test-coverage:
 	@echo "$(call color,green)Coverage report available at htmlcov/index.html$(NC)"
 
 .PHONY: lint
-lint:
+    lint:
 	@echo "$(call color,green)Running code linters...$(NC)"
-	@. $(VENV_DIR)/bin/activate && (flake8 src/ --max-line-length=100 --extend-ignore=E203 2>/dev/null || echo "flake8 not installed")
+		@. $(VENV_DIR)/bin/activate && (flake8 src/ --max-line-length=100 --extend-ignore=E203 2>/dev/null || echo "flake8 not installed")
 	@. $(VENV_DIR)/bin/activate && (black --check src/ 2>/dev/null || echo "black not installed")
 	@. $(VENV_DIR)/bin/activate && (isort --check-only src/ 2>/dev/null || echo "isort not installed")
+	@echo "$(call color,green)Code formatted!$(NC)"
 
 .PHONY: format
-format:
+    format:
 	@echo "$(call color,green)Formatting code...$(NC)"
 	@. $(VENV_DIR)/bin/activate && (black src/ 2>/dev/null || echo "black not installed")
 	@. $(VENV_DIR)/bin/activate && (isort src/ 2>/dev/null || echo "isort not installed")
 	@echo "$(call color,green)Code formatted!$(NC)"
+
+# ============================================================================
+# DOCKER TARGETS
+# ============================================================================
+
+.PHONY: docker-build
+docker-build:
+	@echo "$(call color,green)Building Docker image...$(NC)"
+	docker build -t $(PROJECT_NAME):$(DOCKER_TAG) .
+	@echo "$(call color,green)Docker image built successfully!$(NC)"
+
+.PHONY: docker-run
+docker-run:
+	@echo "$(call color,green)Starting Docker containers...$(NC)"
+	docker-compose up -d
+	@echo "$(call color,green)Docker containers started!$(NC)"
+
+.PHONY: docker-stop
+docker-stop:
+	@echo "$(call color,yellow)Stopping Docker containers...$(NC)"
+	docker-compose down
+	@echo "$(call color,green)Docker containers stopped!$(NC)"
+
+.PHONY: docker-logs
+docker-logs:
+	docker-compose logs -f
+
+.PHONY: docker-clean
+docker-clean:
+	@echo "$(call color,yellow)Cleaning Docker resources...$(NC)"
+	docker-compose down --volumes --remove-orphans
+	docker system prune -f
+	@echo "$(call color,green)Docker cleanup completed!$(NC)"
+
+.PHONY: docker-production
+docker-production: docker-build
+	@echo "$(call color,green)Deploying to production...$(NC)"
+	docker-compose -f docker-compose.yml up -d
+	@echo "$(call color,green)Production deployment started!$(NC)"
 
 # ============================================================================
 # DATABASE TARGETS

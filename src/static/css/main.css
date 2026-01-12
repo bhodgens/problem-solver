@@ -1,0 +1,142 @@
+/* Custom styles for Problem Solver Platform */
+
+/* Theme variables */
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+/* Body styles */
+body {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    transition: color 0.15s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Vote score badges */
+.badge.bg-success {
+    background-color: var(--success-color);
+}
+
+.badge.bg-danger {
+    background-color: var(--danger-color);
+}
+
+/* Status badges */
+.badge.bg-info {
+    background-color: var(--info-color);
+}
+
+.badge.bg-warning {
+    background-color: var(--warning-color);
+}
+
+/* Problem severity colors */
+.severity-low {
+    background-color: var(--info-color);
+}
+
+.severity-medium {
+    background-color: var(--warning-color);
+}
+
+.severity-high {
+    background-color: #fd7e14;
+}
+
+.severity-critical {
+    background-color: var(--danger-color);
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn {
+    border-radius: 0.375rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Custom utilities */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Icon utilities */
+.icon-lg {
+    font-size: 1.2rem;
+}
+
+.icon-sm {
+    font-size: 0.875rem;
+}

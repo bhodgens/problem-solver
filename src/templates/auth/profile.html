@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Problem Solver Platform - Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-person-gear"></i> Profile Settings</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.profile') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ user.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="visibility" class="form-label">Posting Visibility</label>
+                        <select class="form-select" id="visibility" name="visibility" required>
+                            <option value="identified" {% if user.visibility_preference == 'identified' %}selected{% endif %}>
+                                <i class="bi bi-person"></i> Identified (Real Name)
+                            </option>
+                            <option value="semi-anonymous" {% if user.visibility_preference == 'semi-anonymous' %}selected{% endif %}>
+                                <i class="bi bi-person-badge"></i> Semi-Anonymous (Pseudonym + Admins see real name)
+                            </option>
+                            <option value="anonymous" {% if user.visibility_preference == 'anonymous' %}selected{% endif %}>
+                                <i class="bi bi-incognito"></i> Anonymous (Pseudonym Only)
+                            </option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Choose how your name appears when you submit problems and solutions.
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ user.email }}" readonly>
+                        <small class="form-text text-muted">Email cannot be changed</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Your Pseudonym</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="pseudonym" name="pseudonym" 
+                                   value="{{ user.get_pseudonym() or 'Not set' }}" readonly>
+                            {% if user.get_pseudonym() %}
+                                <small class="form-text text-muted">
+                                    This is your consistent pseudonym across the platform.
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Save Profile
+                        </button>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Account Info</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>Email:</strong> {{ user.email }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Role:</strong> 
+                        <span class="badge bg-{{ 'danger' if user.role == 'admin' else 'warning' if user.role == 'moderator' else 'info' }}">
+                            {{ user.role.title() }}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Last Login:</strong> 
+                        {% if user.last_login %}
+                            {{ user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Email Verified:</strong> 
+                        {% if user.email_verified %}
+                            <span class="badge bg-success">Verified</span>
+                        {% else %}
+                            <span class="badge bg-warning">Not Verified</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

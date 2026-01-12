@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.title }} - Edit{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="card-title mb-0">Edit Problem</h4>
+                <small class="text-muted">Created: {{ problem.created_at.strftime('%b %d, %Y') }}</small>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('problems_bp.edit', id=problem.id) }}" id="problem-edit-form">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="title" class="form-label">Problem Title *</label>
+                            <input type="text" class="form-control {% if not title %}is-invalid{% endif %}" 
+                                   id="title" name="title" 
+                                   value="{{ problem.title }}" 
+                                   maxlength="200" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="description" class="form-label">Problem Description *</label>
+                            <textarea class="form-control {% if not description %}is-invalid{% endif %}" 
+                                      id="description" name="description" 
+                                      rows="6" required>{{ problem.description }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="visibility" class="form-label">Posting Visibility</label>
+                            <select class="form-select" id="visibility" name="visibility" required>
+                                <option value="identified" {% if problem.visibility == 'identified' %}selected{% endif %}>
+                                    <i class="bi bi-person"></i> Identified (Real Name)
+                                </option>
+                                <option value="semi-anonymous" {% if problem.visibility == 'semi-anonymous' %}selected{% endif %}>
+                                    <i class="bi bi-person-badge"></i> Semi-Anonymous (Pseudonym + Admins see real name)
+                                </option>
+                                <option value="anonymous" {% if problem.visibility == 'anonymous' %}selected{% endif %}>
+                                    <i class="bi bi-incognito"></i> Anonymous (Pseudonym Only)
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="severity" class="form-label">Severity Level</label>
+                            <select class="form-select" id="severity" name="severity" required>
+                                <option value="low" {% if problem.severity == 'low' %}selected{% endif %}>Low</option>
+                                <option value="medium" {% if problem.severity == 'medium' %}selected{% endif %}>Medium</option>
+                                <option value="high" {% if problem.severity == 'high' %}selected{% endif %}>High</option>
+                                <option value="critical" {% if problem.severity == 'critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="departments" class="form-label">Affected Departments</label>
+                            <input type="text" class="form-control" 
+                                   id="departments" 
+                                   name="departments" 
+                                   placeholder="Engineering, HR, Operations"
+                                   value="{{ problem.affected_departments|join(', ') }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <h6>Tags</h6>
+                            <input type="text" class="form-control" 
+                                   id="tags" 
+                                   name="tags" 
+                                   placeholder="engineering, hr, operations, finance"
+                                   value="{{ problem.tags|map(attribute='name')|join(', ') }}">
+                            <small class="form-text text-muted">
+                                Comma-separated tags for categorization
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="draft" {% if problem.status == 'draft' %}selected{% endif %}>Draft</option>
+                                <option value="open" {% if problem.status == 'open' %}selected{% endif %}>Open</option>
+                                <option value="under_review" {% if problem.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                                <option value="in_progress" {% if problem.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="implemented" {% if problem.status == 'implemented' %}selected{% endif %}>Implemented</option>
+                                <option value="closed" {% if problem.status == 'closed' %}selected{% endif %}>Closed</option>
+                                <option value="archived" {% if problem.status == 'archived' %}selected{% endif %}>Archived</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Update Problem
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('problems_bp.detail', id=problem.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="submit" class="btn btn-danger" formaction="{{ url_for('problems_bp.delete', id=problem.id) }}">
+                                <i class="bi bi-trash"></i> Delete Problem
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Current Solutions</h5>
+            </div>
+            <div class="card-body">
+                {% if problem.solutions %}
+                    {% for solution in problem.solutions %}
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>{{ solution.submitter.get_display_name() }}</strong>
+                                {% if solution.is_implemented() %}
+                                    <span class="badge bg-success ms-2">Implemented</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ solution.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        
+                        <div class="mb-1">
+                            <p>{{ solution.content[:100] }}{% if solution.content|length > 100 %}...{% endif %}</p>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('solutions_bp.edit', id=solution.id) }}" 
+                               class="btn btn-sm btn-outline-primary {% if not solution.is_editable_by(current_user) %}disabled{% endif %}">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a href="{{ url_for('solutions_bp.detail', id=solution.id) }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No solutions yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('problem-edit-form');
+    
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return;
+        }
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Updating...';
+    });
+});
+</script>
+{% endblock %}

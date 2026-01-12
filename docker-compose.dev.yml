@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  problem-solver:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URI=sqlite:///problem_solver_dev.db
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - FLASK_ENV=development
+      - FLASK_APP=problemsolver
+    volumes:
+      - ./src:/app
+      - ./logs:/app/logs
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_PASSWORD=dev_password
+      - POSTGRES_USER=dev_user
+      - POSTGRES_DB=problem_solver_dev
+      - POSTGRES_HOST=db
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - postgres_dev_logs:/var/log/postgresql

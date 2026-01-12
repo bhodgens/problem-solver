@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Problem Solver Platform - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Hero Section -->
+    <div class="col-12 mb-4">
+        <div class="jumbotron bg-primary text-white p-5 rounded">
+            <div class="container">
+                <h1 class="display-4">Solve Workplace Problems Together</h1>
+                <p class="lead">A collaborative platform for identifying, evaluating, and solving organizational challenges through collective intelligence and quasi-anonymous participation.</p>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <a class="btn btn-light btn-lg" href="{{ url_for('problems_bp.create') }}" role="button">
+                            <i class="bi bi-plus-circle"></i> Submit a Problem
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="btn btn-outline-light btn-lg" href="{{ url_for('problems_bp.list') }}" role="button">
+                            <i class="bi bi-list-task"></i> Browse Problems
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Problems Section -->
+    {% if featured_problems %}
+    <div class="col-12 mb-4">
+        <h2><i class="bi bi-star"></i> Featured Problems</h2>
+        <div class="row">
+            {% for problem in featured_problems %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ problem.title }}</h5>
+                        <span class="badge bg-{{ 'danger' if problem.severity == 'critical' else 'warning' if problem.severity == 'high' else 'info' }} text-white">
+                            {{ problem.severity.title() }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ problem.description[:150] }}{% if problem.description|length > 150 %}...{% endif %}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> 
+                                {{ problem.submitter.get_display_name() }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> 
+                                {{ problem.created_at.strftime('%b %d, %Y') }}
+                            </small>
+                        </div>
+                        
+                        <div class="mt-2">
+                            {% set vote_score = problem.get_vote_score() %}
+                            {% if vote_score > 0 %}
+                                <span class="badge bg-success">{{ vote_score }} <i class="bi bi-arrow-up"></i></span>
+                            {% elif vote_score < 0 %}
+                                <span class="badge bg-danger">{{ vote_score }} <i class="bi bi-arrow-down"></i></span>
+                            {% endif %}
+                            
+                            {% if problem.is_resolved() %}
+                                <span class="badge bg-success ms-2">Resolved</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('problems_bp.detail', id=problem.id) }}" class="btn btn-primary">
+                            View Details <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Solutions Section -->
+    {% if recent_solutions %}
+    <div class="col-12 mb-4">
+        <h2><i class="bi bi-lightbulb"></i> Recent Solutions</h2>
+        <div class="row">
+            {% for solution in recent_solutions %}
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Solution for: {{ solution.problem.title }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ solution.content[:100] }}{% if solution.content|length > 100 %}...{% endif %}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> 
+                                {{ solution.submitter.get_display_name() }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> 
+                                {{ solution.created_at.strftime('%b %d, %Y') }}
+                            </small>
+                        </div>
+                        
+                        <div class="mt-2">
+                            {% set vote_score = solution.get_vote_score() %}
+                            {% if vote_score > 0 %}
+                                <span class="badge bg-success">{{ vote_score }} <i class="bi bi-arrow-up"></i></span>
+                            {% elif vote_score < 0 %}
+                                <span class="badge bg-danger">{{ vote_score }} <i class="bi bi-arrow-down"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('solutions_bp.detail', id=solution.id) }}" class="btn btn-outline-primary">
+                            View Solution <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Call to Action -->
+    <div class="col-12">
+        <div class="text-center py-5">
+            {% if current_user.is_authenticated %}
+                <h3>Ready to contribute?</h3>
+                <p class="lead">Join our community in solving workplace challenges together.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a class="btn btn-primary btn-lg" href="{{ url_for('problems_bp.create') }}" role="button">
+                            <i class="bi bi-plus-circle"></i> Submit Your Problem
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('problems_bp.list') }}" role="button">
+                            <i class="bi bi-list-task"></i> Help Others Solve
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <h3>Get Started Today</h3>
+                <p class="lead">Sign in to start solving and evaluating workplace problems.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}" role="button">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In with Google
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="btn btn-outline-primary btn-lg" href="{{ url_for('problems_bp.list') }}" role="button">
+                            <i class="bi bi-eye"></i> Browse Problems
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
